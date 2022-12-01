@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  mongo-db:
+    image: 'mongo:4.2'
+    environment:
+        - MONGO_INITDB_ROOT_USERNAME=root
+        - MONGO_INITDB_ROOT_PASSWORD=123456
+    ports: 
+      - 27017:27017
+    volumes:
+      - 'db:/data/db'
+    networks:
+      - order-api-networks
+
+  api:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - /usr/src/app/node_modules
+      - .:/usr/src/app
+    ports:
+      - 3000:3000
+    command: npm run start:dev
+    environment:
+      MONGO_URL: mongodb://root:123456@mongo-db:27017/mydb?authSource=admin
+      PORT: 3000
+      JWT_SECRET: secretKey
+    depends_on:
+      - mongo-db
+    networks:
+      - order-api-networks
+
+networks:
+  order-api-networks:
+    driver: bridge
+
+volumes:
+  db:
